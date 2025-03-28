@@ -351,7 +351,7 @@ void bleSerialCommand()
                     break;
                 case MICRO_IO:
                     if(whatAmI == A_MB) {
-                        bytesUsed = 8; // This command always uses 8 bytes
+                        bytesUsed = 9; // This command always uses 8 bytes (9 with I2C sensors? what about backward compatibility?)
                         uint8_t packetCommands[bytesUsed];
                         if(bufferLength >= commandCount+bytesUsed)
                         {
@@ -609,6 +609,12 @@ void assembleSensorData()
             {
                 getEdgeConnectorVals(sensor_vals);
                 sensor_vals[3] = 0xFF; // no battery level reported
+
+                //Only get the I2C values if we aren't using the pins. TODO: Is this really how we want to do it?
+                if (sensor_vals[0] == 0xFF && sensor_vals[1] == 0xFF && sensor_vals[2] == 0xFF) {
+                    getI2CVals(sensor_vals);
+                }
+
             }
             
             if(whatAmI == A_HB)

@@ -20,6 +20,14 @@ uint8_t convertAccelVal(int accelerometerValue);
 // helper function to convert from uT to a 16-bit unsigned val
 uint16_t convertMagVal(int magValue);
 
+//ElecFreaks 
+bool aiLensConnected;
+void aiLensSwitchFunc(int func);
+void aiLensLearnObject(int id);
+void asrEnterLearningMode();
+void asrClearLearning();
+
+
 // Flash the message 
 void flashMessage(MicroBitEvent)
 {
@@ -121,6 +129,8 @@ void BBMicroBitInit()
         // Set the speaker low
     uBit.io.speaker.setAnalogValue(0);
 
+    //ElecFreaks
+    aiLensConnected = false;
 }
 
 // Set the display based on the bluetooth command
@@ -251,6 +261,28 @@ void decodeAndSetPins(uint8_t displayCommands[])
         pwmVal = 4*displayCommands[7]; 
         uBit.io.P2.setAnalogValue(pwmVal);
     }
+
+
+    switch(displayCommands[8]) {
+    case NO_COMMAND:
+        break;
+    case ASR_LEARN:
+        asrEnterLearningMode();
+        break;
+    case ASR_CLEAR_LEARNING:
+        asrClearLearning();
+        break;
+    case AILENS_LEARN_OBJECT1:
+    case AILENS_LEARN_OBJECT2:
+    case AILENS_LEARN_OBJECT3:
+    case AILENS_LEARN_OBJECT4:
+    case AILENS_LEARN_OBJECT5:
+        aiLensLearnObject(displayCommands[8]-100);
+        break;
+    default:
+        aiLensSwitchFunc(displayCommands[8]);
+    }
+    
     
 }
 
@@ -484,3 +516,95 @@ void stopMB()
         uBit.io.P2.getAnalogValue();
     }
 }
+
+//////////// ElecFreaks ////////
+
+void writeElecFreaks(int sensor, uint8_t *msg, int msgLength) {
+    int success = uBit.i2c.write(sensor, msg, msgLength);
+    if (success == MICROBIT_OK) {
+
+    } else {
+
+    }
+}
+
+void getI2CVals(uint8_t (&sensor_vals)[V2_SENSOR_SEND_LENGTH]) {
+    uint8_t data[AILENS_DATA_LENGTH];
+
+    if (!aiLensConnected) {
+
+        int success = uBit.i2c.read(ASR, data, 1, false);
+        if (success == MICROBIT_OK) {
+            sensor_vals[0] = data[0];
+
+            return;
+        } else if (success == MICROBIT_I2C_ERROR) {
+
+        } else {
+
+        }
+
+        success = uBit.i2c.read(AILENS, data, 1, false);
+        if (success == MICROBIT_OK) {
+            aiLensConnected = true;
+        }
+    }
+
+    //aiLensConnected may be set above
+    if (aiLensConnected) {
+        int success = uBit.i2c.read(AILENS, data, AILENS_DATA_LENGTH);
+
+        if (success == MICROBIT_OK) {
+            sensor_vals[0] = data[0] | data[8] << 4; //combine mode and id# into one byte
+            sensor_vals[1] = data[1];
+            sensor_vals[2] = data[2];
+            sensor_vals[3] = data[3];
+            sensor_vals[16] = data[4];
+            sensor_vals[17] = data[5];
+            sensor_vals[18] = data[6];
+            sensor_vals[19] = data[7];
+        } else {
+            aiLensConnected = false;
+        }
+    }
+
+}
+
+
+// ElecFreaks PlanetX AILens 
+void aiLensSwitchFunc(int func) {
+    uint8_t msg[AILENS_DATA_LENGTH];
+    //aiLensGetImage(msg); //Why do we need all this?
+    int success = uBit.i2c.read(AILENS, msg, AILENS_DATA_LENGTH); //Why do we need all this?
+    msg[0] = 0x20;
+    msg[1] = func;
+    writeElecFreaks(AILENS, msg, AILENS_DATA_LENGTH);
+}
+
+void aiLensLearnObject(int id) {
+    // Use id=10 to clear all learn data
+    uint8_t msg[AILENS_DATA_LENGTH];
+    msg[0] = 10;
+    msg[1] = id;
+    writeElecFreaks(AILENS, msg, AILENS_DATA_LENGTH);
+}
+
+
+
+// ElecFreaks Speech Recognition
+void asrEnterLearningMode() {
+    uint8_t msg[1];
+    msg[0] = 0x50;
+    writeElecFreaks(ASR, msg, 1);
+}
+
+void asrClearLearning() {
+    uint8_t msg[1];
+    msg[0] = 0x60;
+    writeElecFreaks(ASR, msg, 1);
+}
+
+
+
+
+

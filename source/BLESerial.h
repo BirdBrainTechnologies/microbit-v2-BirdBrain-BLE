@@ -41,7 +41,7 @@
 #define HARDWARE_VERSION				          0x01
 
 #define SENSOR_SEND_LENGTH                	      14
-#define V2_SENSOR_SEND_LENGTH             	      16
+#define V2_SENSOR_SEND_LENGTH             	      20  //16 Increased to accommodate I2C data. Is this a backward compatibility problem?
 #define FINCH_SENSOR_SEND_LENGTH                  20
 #define BLE__MAX_PACKET_LENGTH                    20 
 

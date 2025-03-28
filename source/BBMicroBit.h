@@ -3,6 +3,24 @@
 
 #include "BLESerial.h"
 
+//ElecFreaks PlanetX AiLens
+#define AILENS											(0x14 << 1)
+#define AILENS_DATA_LENGTH								9
+//ElecFreaks Speech Recognition
+#define ASR												(0x0B << 1)
+//Commands for ElecFreaks
+#define NO_COMMAND										0
+#define ASR_LEARN										50
+#define ASR_CLEAR_LEARNING								60
+#define AILENS_LEARN_OBJECT1							101
+#define AILENS_LEARN_OBJECT2							102
+#define AILENS_LEARN_OBJECT3							103
+#define AILENS_LEARN_OBJECT4							104
+#define AILENS_LEARN_OBJECT5							105
+
+
+
+
 // Function that decodes the display command
 void BBMicroBitInit();
 void decodeAndSetDisplay(uint8_t displayCommands[], uint8_t commandLength);
@@ -36,5 +54,8 @@ void stopMB();
 
 // Function used for setting the buzzer for Hummingbird and Finch
 void setBuzzer(uint16_t period, uint16_t duration);
+
+// ElecFreaks Function
+void getI2CVals(uint8_t (&sensor_vals)[V2_SENSOR_SEND_LENGTH]);
 
 #endif
