@@ -100,6 +100,12 @@ SET(TOOLCHAIN_FOLDER "./utils/cmake/toolchains/${device.toolchain}")
 # include toolchain file
 set(CMAKE_TOOLCHAIN_FILE "${TOOLCHAIN_FOLDER}/toolchain.cmake" CACHE PATH "toolchain file")
 
+
+# Override the default system to cross-compile for ARM processors
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR ARM)
+
+
 # required to force TOOLCHAIN settings...
 project(codal)
 enable_language(ASM)
